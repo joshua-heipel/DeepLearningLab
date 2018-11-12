@@ -66,18 +66,18 @@ def mnist(datasets_dir='./data'):
 def train_and_validate(x_train, y_train, x_valid, y_valid, num_epochs, lr, num_filters, batch_size, filter_size):
 
     # define convolutional neural network:
-    # with tf.device('/gpu:0'):
-    cnn = Network()
-    l1 = InitialLayer([None,28,28,1])
-    l2 = ConvolutionalLayer(l1, filter_size, num_filters, pooling=tf.nn.max_pool, poolingsize=2)
-    l3 = ConvolutionalLayer(l2, filter_size, num_filters, pooling=tf.nn.max_pool, poolingsize=2)
-    l4 = FullyConnectedLayer(l3.flattened(), 128, activation=None)
-    l5 = OutputLayer(l4, 10)
-    cnn.addLayers([l1, l2, l3, l4, l5])
+    with tf.device('/gpu:0'):
+        cnn = Network()
+        l1 = InitialLayer([None,28,28,1])
+        l2 = ConvolutionalLayer(l1, filter_size, num_filters, pooling=tf.nn.max_pool, poolingsize=2)
+        l3 = ConvolutionalLayer(l2, filter_size, num_filters, pooling=tf.nn.max_pool, poolingsize=2)
+        l4 = FullyConnectedLayer(l3.flattened(), 128, activation=None)
+        l5 = OutputLayer(l4, 10)
+        cnn.addLayers([l1, l2, l3, l4, l5])
 
-    print("... network configuration: " + " ,".join("x".join(str(x) for x in l.shape()[1:]) for l in cnn.layers))
+        print("... network configuration: " + " ,".join("x".join(str(x) for x in l.shape()[1:]) for l in cnn.layers))
 
-    model = Calculation(cnn, lr)
+        model = Calculation(cnn, lr)
 
     print("... optimize network")
 
