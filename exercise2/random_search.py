@@ -56,7 +56,7 @@ class MyWorker(Worker):
         num_filters = CS.hyperparameters.UniformIntegerHyperparameter('num_filters', lower=8, upper=64, default_value=16, log=True)
         filter_size = CS.hyperparameters.CategoricalHyperparameter('filter_size', [3,5])
 
-        config_space.add_hyperparameters([lr, batch_size, num_filters, filter_size])
+        config_space.add_hyperparameters([learning_rate, batch_size, num_filters, filter_size])
 
         # TODO: Implement configuration space here. See https://github.com/automl/HpBandSter/blob/master/hpbandster/examples/example_5_keras_worker.py  for an example
 
