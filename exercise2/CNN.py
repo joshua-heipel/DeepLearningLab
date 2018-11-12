@@ -19,8 +19,8 @@ class InitialLayer(Layer):
 class FullyConnectedLayer(Layer):
 
     def __init__(self, input, n_units, activation=tf.nn.relu):
-        self.weights = tf.Variable(tf.random.normal(shape=[input.shape()[1],n_units], stddev=0.01))
-        self.bias = tf.Variable(tf.random.normal(shape=[n_units], stddev=0.01))
+        self.weights = tf.Variable(tf.random_normal(shape=[input.shape()[1],n_units], stddev=0.01))
+        self.bias = tf.Variable(tf.random_normal(shape=[n_units], stddev=0.01))
         self.activation = activation
         self.layer = tf.matmul(input.layer, self.weights) + self.bias
         if self.activation is not None:
@@ -29,8 +29,8 @@ class FullyConnectedLayer(Layer):
 class ConvolutionalLayer(Layer):
 
     def __init__(self, input, filtersize, n_filters, strides=1, padding="SAME", pooling=None, poolingsize=1, activation=tf.nn.relu):
-        self.filters = tf.Variable(tf.random.normal([filtersize, filtersize, input.shape()[3], n_filters], stddev=0.01))
-        self.bias = tf.Variable(tf.random.normal([n_filters], stddev=0.01))
+        self.filters = tf.Variable(tf.random_normal([filtersize, filtersize, input.shape()[3], n_filters], stddev=0.01))
+        self.bias = tf.Variable(tf.random_normal([n_filters], stddev=0.01))
         self.activation = activation
         self.layer = tf.nn.conv2d(input=input.layer, filter=self.filters, strides=[1, strides, strides, 1], padding=padding) + self.bias
         if pooling is not None:
@@ -47,8 +47,8 @@ class FlatteningLayer(Layer):
 class OutputLayer(Layer):
 
     def __init__(self, input, n_outputs, activation=tf.nn.softmax):
-        self.weights = tf.Variable(tf.random.normal(shape=[input.shape()[1],n_outputs], stddev=0.01))
-        self.bias = tf.Variable(tf.random.normal(shape=[n_outputs], stddev=0.01))
+        self.weights = tf.Variable(tf.random_normal(shape=[input.shape()[1],n_outputs], stddev=0.01))
+        self.bias = tf.Variable(tf.random_normal(shape=[n_outputs], stddev=0.01))
         self.activation = activation
         self.layer = tf.matmul(input.layer, self.weights) + self.bias
         if self.activation is not None:
