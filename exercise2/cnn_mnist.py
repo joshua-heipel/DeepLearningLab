@@ -74,7 +74,7 @@ def train_and_validate(x_train, y_train, x_valid, y_valid, num_epochs, lr, num_f
     l5 = OutputLayer(l4, 10)
     cnn.addLayers([l1, l2, l3, l4, l5])
 
-    print("... network configuration: " + " ,".join("x".join(str(x) for x in l.shape()[1:]) for l in cnn.layers))
+    print("... network configuration: " + ", ".join("x".join(str(x) for x in l.shape()[1:]) for l in cnn.layers))
 
     model = Calculation(cnn, lr)
 
