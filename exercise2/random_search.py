@@ -64,8 +64,8 @@ class MyWorker(Worker):
 
 parser = argparse.ArgumentParser(description='Example 1 - sequential and local execution.')
 parser.add_argument('--budget', type=float,
-                    help='Maximum budget used during the optimization, i.e the number of epochs.', default=12)
-parser.add_argument('--n_iterations', type=int, help='Number of iterations performed by the optimizer', default=20)
+                    help='Maximum budget used during the optimization, i.e the number of epochs.', default=6)
+parser.add_argument('--n_iterations', type=int, help='Number of iterations performed by the optimizer', default=50)
 args = parser.parse_args()
 
 # Step 1: Start a nameserver
@@ -73,7 +73,7 @@ args = parser.parse_args()
 # permanent address, but here it will be started for the local machine with the default port.
 # The nameserver manages the concurrent running workers across all possible threads or clusternodes.
 # Note the run_id argument. This uniquely identifies a run of any HpBandSter optimizer.
-NS = hpns.NameServer(run_id='example1', host='127.0.0.1', port=None)
+NS = hpns.NameServer(run_id='example1', host='127.0.0.3', port=None)
 NS.start()
 
 # Step 2: Start a worker
@@ -81,7 +81,7 @@ NS.start()
 # Besides the sleep_interval, we need to define the nameserver information and
 # the same run_id as above. After that, we can start the worker in the background,
 # where it will wait for incoming configurations to evaluate.
-w = MyWorker(nameserver='127.0.0.1', run_id='example1')
+w = MyWorker(nameserver='127.0.0.3', run_id='example1')
 w.run(background=True)
 
 # Step 3: Run an optimizer
@@ -90,7 +90,7 @@ w.run(background=True)
 # The run method will return the `Result` that contains all runs performed.
 
 rs = RandomSearch(configspace=w.get_configspace(),
-                  run_id='example1', nameserver='127.0.0.1',
+                  run_id='example1', nameserver='127.0.0.3',
                   min_budget=int(args.budget), max_budget=int(args.budget))
 res = rs.run(n_iterations=args.n_iterations)
 
