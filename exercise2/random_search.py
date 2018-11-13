@@ -38,7 +38,7 @@ class MyWorker(Worker):
 
         epochs = budget
 
-        learning_curve, model = train_and_validate(self.x_train, self.y_train, self.x_valid, self.y_valid, epochs, lr, num_filters, batch_size, filter_size)
+        learning_curve, model = train_and_validate(self.x_train, self.y_train, self.x_valid, self.y_valid, epochs, lr, num_filters, batch_size, filter_size, verbose=False)
 
         validation_error = learning_curve[-1]
 
@@ -52,7 +52,7 @@ class MyWorker(Worker):
         config_space = CS.ConfigurationSpace()
 
         learning_rate = CS.hyperparameters.UniformFloatHyperparameter('learning_rate', lower=1e-4, upper=1e-1, default_value='1e-2', log=True)
-        batch_size = CS.hyperparameters.UniformIntegerHyperparameter('batch_size', lower=16, upper=128, default_value=128, log=True)
+        batch_size = CS.hyperparameters.UniformIntegerHyperparameter('batch_size', lower=16, upper=128, default_value=64, log=True)
         num_filters = CS.hyperparameters.UniformIntegerHyperparameter('num_filters', lower=8, upper=64, default_value=16, log=True)
         filter_size = CS.hyperparameters.CategoricalHyperparameter('filter_size', [3,5])
 

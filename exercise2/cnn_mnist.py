@@ -63,7 +63,7 @@ def mnist(datasets_dir='./data'):
     print('... done loading data')
     return train_x, one_hot(train_y), valid_x, one_hot(valid_y), test_x, one_hot(test_y)
 
-def train_and_validate(x_train, y_train, x_valid, y_valid, num_epochs, lr, num_filters, batch_size, filter_size):
+def train_and_validate(x_train, y_train, x_valid, y_valid, num_epochs, lr, num_filters, batch_size, filter_size, verbose=True):
 
     # define convolutional neural network:
     cnn = Network()
@@ -78,27 +78,36 @@ def train_and_validate(x_train, y_train, x_valid, y_valid, num_epochs, lr, num_f
 
     model = Calculation(cnn, lr)
 
-    print("... optimize network")
+    if verbose:
+        print("... training network")
 
     learning_curve = []
-    n = x_train.shape[0]
-    n_batches = n // batch_size
+    n_batches = x_train.shape[0] // batch_size
+    n_validation_batches = x_valid.shape[0] // batch_size
 
     # optimize parameters with stochastic gradient descent
     for j in range(num_epochs):
-        print("....... epoch number {0}".format(j), end='', flush=True)
-        perm = np.random.permutation(n)
+        if verbose:
+            print("....... epoch number {0}".format(j), end='', flush=True)
+        perm = np.random.permutation(x_train.shape[0])
         for i in range(n_batches):
             x_batch = x_train[perm[(batch_size*i):(batch_size*(i+1))],:,:,:]
             y_batch = y_train[perm[(batch_size*i):(batch_size*(i+1))],:]
             model.optimize(x_batch, y_batch)
-        learning_curve += [float(model.classError(x_valid, y_valid))]
-        print(" ... error: {0:.2f}".format(learning_curve[-1]), flush=True)
+        accuracy = 0
+        for i in range(n_validation_batches):
+            x_batch = x_valid[(batch_size*i):(batch_size*(i+1)),:,:,:]
+            y_batch = y_valid[(batch_size*i):(batch_size*(i+1)),:]
+            accuracy += float(model.accuracy(x_batch, y_batch)) * x_batch.shape[0]
+        learning_curve += [1 - accuracy / x_valid.shape[0]]
+
+        if verbose:
+            print(" ... error: {0:.2f}".format(learning_curve[-1]), flush=True)
 
     return learning_curve, model
 
 def test(x_test, y_test, model):
-    return float(model.classError(x_test, y_test))
+    return 1 - float(model.accuracy(x_test, y_test))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -106,10 +115,10 @@ if __name__ == "__main__":
                         help="Path where the results will be stored")
     parser.add_argument("--input_path", default="./", type=str, nargs="?",
                         help="Path where the data is located. If the data is not available it will be downloaded first")
-    parser.add_argument("--learning_rate", default=1e-3, type=float, nargs="?", help="Learning rate for SGD")
+    parser.add_argument("--learning_rate", default=0.05, type=float, nargs="?", help="Learning rate for SGD")
     parser.add_argument("--num_filters", default=16, type=int, nargs="?",
                         help="The number of filters for each convolution layer")
-    parser.add_argument("--batch_size", default=128, type=int, nargs="?", help="Batch size for SGD")
+    parser.add_argument("--batch_size", default=32, type=int, nargs="?", help="Batch size for SGD")
     parser.add_argument("--epochs", default=12, type=int, nargs="?",
                         help="Determines how many epochs the network will be trained")
     parser.add_argument("--run_id", default=0, type=int, nargs="?",
