@@ -103,7 +103,7 @@ def FCN_Seg(self, is_training=True):
         current_up1 = UpsamplingModule(x, self.tgt_image, 1, 1, 16, 120, self.normalizer, self.bn_params)
 
         print("Upsampling Block One Dim ")
-        print(current_up5)
+        print(x)
 
         # TODO(1.1) - incorporate a upsample function which takes the features of x
         # and produces 120 output feature maps, which are 16x bigger in resolution than
