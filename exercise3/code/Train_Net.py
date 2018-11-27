@@ -49,7 +49,7 @@ def main(_):
 		os.makedirs(FLAGS.checkpoint_dir)
 
 	# Call Train
-	with tf.device('/cpu:0'):
+	with tf.device('/gpu:0'):
 		FCN = FCN_SS()
 		FCN.train(FLAGS)
 
