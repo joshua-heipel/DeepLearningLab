@@ -15,7 +15,7 @@ from layers_slim import *
 def UpsamplingModule(main_stream, side_stream, config, stage, upsampling_rate, output_features, normalizer_fn, normalizer_params):
     with tf.variable_scope('UpsamplingModule_{}_{}'.format(config, stage)):
         # upsample main stream by transposed convolution
-        upsampled = tc.layers.conv2d_transpose(main_stream, output_features, 2*upsampling_rate, stride=upsampling_rate, padding='SAME', activation_fn=tf.nn.elu, normalizer_fn=normalizer_fn, normalizer_params=normalizer_params)
+        upsampled = tc.layers.conv2d_transpose(main_stream, output_features, upsampling_rate, stride=upsampling_rate, padding='SAME', activation_fn=tf.nn.elu, normalizer_fn=normalizer_fn, normalizer_params=normalizer_params)
         side_shape = side_stream.get_shape().as_list()
         up_shape = upsampled.get_shape().as_list()
         if up_shape[0] == side_shape[0] and up_shape[1] == side_shape[1]:
@@ -31,7 +31,7 @@ def RefinementModule(main_stream, skip_connection, config, stage, upsampling_rat
         upsampled = UpsamplingModule(main_stream, skip_connection, config, stage, upsampling_rate, 120, normalizer_fn, normalizer_params)
         # fuse upsampled features with skip connection
         fused = tf.concat([upsampled, skip_connection], 3)
-        output = tc.layers.conv2d(fused, output_features, [3, 3])
+        output = tc.layers.conv2d(fused, output_features, [3, 3], normalizer_fn=normalizer_fn, normalizer_params=normalizer_params)
         return output
 
 def FCN_Seg(self, is_training=True):
