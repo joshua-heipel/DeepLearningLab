@@ -230,6 +230,7 @@ class FCN_SS(object):
 		print("passed")
 
 		with sv.managed_session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+		# with sv.managed_session() as sess:
 
 			#train_writer = tf.summary.FileWriter(self.logs_path + '/train', sess.graph)
 			# Create a writer for the summary data.

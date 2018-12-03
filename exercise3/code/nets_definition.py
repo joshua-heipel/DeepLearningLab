@@ -13,16 +13,17 @@ import tensorflow.contrib as tc
 from layers_slim import *
 
 def UpsamplingModule(main_stream, side_stream, config, stage, upsampling_rate, output_features, normalizer_fn, normalizer_params):
-    # upsample main stream by transposed convolution
-    upsampled = tc.layers.conv2d_transpose(main_stream, output_features, upsampling_rate, stride=upsampling_rate, padding='SAME', activation_fn=tf.nn.elu, normalizer_fn=normalizer_fn, normalizer_params=normalizer_params)
-    side_shape = side_stream.get_shape().as_list()
-    up_shape = upsampled.get_shape().as_list()
-    if up_shape[0] == side_shape[0] and up_shape[1] == side_shape[1]:
-        return upsampled
-    # crop upsampled features to size of second input stream
-    offsets = [(up_shape[1] - side_shape[1]) // 2,                  (up_shape[2] - side_shape[2]) // 2]
-    cropped = tf.image.crop_to_bounding_box(upsampled, offsets[0], offsets[1], side_shape[1], side_shape[2])
-    return cropped
+    with tf.variable_scope('UpsamplingModule_{}_{}'.format(config, stage)):
+        # upsample main stream by transposed convolution
+        upsampled = tc.layers.conv2d_transpose(main_stream, output_features, 2*upsampling_rate, stride=upsampling_rate, padding='SAME', activation_fn=tf.nn.elu, normalizer_fn=normalizer_fn, normalizer_params=normalizer_params)
+        side_shape = side_stream.get_shape().as_list()
+        up_shape = upsampled.get_shape().as_list()
+        if up_shape[0] == side_shape[0] and up_shape[1] == side_shape[1]:
+            return upsampled
+        # crop upsampled features to size of second input stream
+        offsets = [(up_shape[1] - side_shape[1]) // 2,                  (up_shape[2] - side_shape[2]) // 2]
+        cropped = tf.image.crop_to_bounding_box(upsampled, offsets[0], offsets[1], side_shape[1], side_shape[2])
+        return cropped
 
 def RefinementModule(main_stream, skip_connection, config, stage, upsampling_rate, output_features, normalizer_fn, normalizer_params):
     with tf.variable_scope('RefinementModule_{}_{}'.format(config, stage)):
@@ -31,7 +32,7 @@ def RefinementModule(main_stream, skip_connection, config, stage, upsampling_rat
         # fuse upsampled features with skip connection
         fused = tf.concat([upsampled, skip_connection], 3)
         output = tc.layers.conv2d(fused, output_features, [3, 3])
-    return output
+        return output
 
 def FCN_Seg(self, is_training=True):
 
@@ -100,7 +101,7 @@ def FCN_Seg(self, is_training=True):
 
         #input is features named 'x'
 
-        current_up1 = UpsamplingModule(x, self.tgt_image, 1, 1, 16, 120, self.normalizer, self.bn_params)
+        current_up1 = UpsamplingModule(x, self.tgt_image, self.configuration, 1, 16, 120, self.normalizer, self.bn_params)
 
         print("Upsampling Block One Dim ")
         print(x)
@@ -128,7 +129,7 @@ def FCN_Seg(self, is_training=True):
         # but that also fuse the upsampled features with the corresponding skip connection (DB4_skip_connection)
         # through concatenation. After that use a convolution with kernel 3x3 to produce 256 output feature maps
 
-        x = RefinementModule(x, DB4_skip_connection, 2, 1, 2, 256, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB4_skip_connection, self.configuration, 1, 2, 256, self.normalizer, self.bn_params)
 
         print("Upsampling Block One Dim ")
         print(x)
@@ -140,7 +141,7 @@ def FCN_Seg(self, is_training=True):
         # output feature name should match the next convolution layer, for instance
         # current_up3
 
-        current_up2 = UpsamplingModule(x, self.tgt_image, 2, 2, 8, 120, self.normalizer, self.bn_params)
+        current_up2 = UpsamplingModule(x, self.tgt_image, self.configuration, 2, 8, 120, self.normalizer, self.bn_params)
 
         print("Upsampling Block Two Dim ")
         print(current_up2)
@@ -162,7 +163,7 @@ def FCN_Seg(self, is_training=True):
         # but that also fuse the upsampled features with the corresponding skip connection (DB4_skip_connection)
         # through concatenation. After that use a convolution with kernel 3x3 to produce 256 output feature maps
 
-        x = RefinementModule(x, DB4_skip_connection, 3, 1, 2, 256, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB4_skip_connection, self.configuration, 1, 2, 256, self.normalizer, self.bn_params)
 
         print("Upsampling Block One Dim ")
         print(x)
@@ -170,7 +171,7 @@ def FCN_Seg(self, is_training=True):
         # TODO (3.2) - Repeat TODO(3.1) now producing 160 output feature maps and fusing the upsampled features
         # with the corresponding skip connection (DB3_skip_connection) through concatenation.
 
-        x = RefinementModule(x, DB3_skip_connection, 3, 2, 2, 160, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB3_skip_connection, self.configuration, 2, 2, 160, self.normalizer, self.bn_params)
 
         print("Upsampling Block Two Dim ")
         print(x)
@@ -182,7 +183,7 @@ def FCN_Seg(self, is_training=True):
         # output feature name should match the next convolution layer, for instance
         # current_up4
 
-        current_up3 = UpsamplingModule(x, self.tgt_image, 3, 3, 4, 120, self.normalizer, self.bn_params)
+        current_up3 = UpsamplingModule(x, self.tgt_image, self.configuration, 3, 4, 120, self.normalizer, self.bn_params)
 
         print("Upsampling Block Three Dim ")
         print(current_up3)
@@ -204,7 +205,7 @@ def FCN_Seg(self, is_training=True):
         # but that also fuse the upsampled features with the corresponding skip connection (DB4_skip_connection)
         # through concatenation. After that use a convolution with kernel 3x3 to produce 256 output feature maps
 
-        x = RefinementModule(x, DB4_skip_connection, 4, 1, 2, 256, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB4_skip_connection, self.configuration, 1, 2, 256, self.normalizer, self.bn_params)
 
         print("Upsampling Block One Dim ")
         print(x)
@@ -212,7 +213,7 @@ def FCN_Seg(self, is_training=True):
         # TODO (4.2) - Repeat TODO(4.1) now producing 160 output feature maps and fusing the upsampled features
         # with the corresponding skip connection (DB3_skip_connection) through concatenation.
 
-        x = RefinementModule(x, DB3_skip_connection, 4, 2, 2, 160, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB3_skip_connection, self.configuration, 2, 2, 160, self.normalizer, self.bn_params)
 
         print("Upsampling Block Two Dim ")
         print(x)
@@ -220,7 +221,7 @@ def FCN_Seg(self, is_training=True):
         # TODO (4.3) - Repeat TODO(4.2) now producing 96 output feature maps and fusing the upsampled features
         # with the corresponding skip connection (DB2_skip_connection) through concatenation.
 
-        x = RefinementModule(x, DB2_skip_connection, 4, 3, 2, 96, self.normalizer, self.bn_params)
+        x = RefinementModule(x, DB2_skip_connection, self.configuration, 3, 2, 96, self.normalizer, self.bn_params)
 
         print("Upsampling Block Three Dim ")
         print(x)
@@ -232,7 +233,7 @@ def FCN_Seg(self, is_training=True):
         # output feature name should match the next convolution layer, for instance
         # current_up4
 
-        current_up4 = UpsamplingModule(x, self.tgt_image, 4, 4, 2, 120, self.normalizer, self.bn_params)
+        current_up4 = UpsamplingModule(x, self.tgt_image, self.configuration, 4, 2, 120, self.normalizer, self.bn_params)
 
         print("Upsampling Block Three Dim ")
         print(current_up4)
